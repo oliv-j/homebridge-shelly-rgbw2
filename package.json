@@ -1,0 +1,50 @@
+{
+  "name": "homebridge-shelly-rgbw2",
+  "version": "0.1.0",
+  "description": "Homebridge v2 dynamic platform plugin for Shelly RGBW2 (Gen1) in white mode",
+  "license": "MIT",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "config.schema.json",
+    "README.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "homebridge-plugin",
+    "shelly",
+    "rgbw2",
+    "lightbulb",
+    "homekit"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/work/shelly_rgbw2_homebridge.git"
+  },
+  "engines": {
+    "node": "^18.19.0 || ^20.5.1 || >=22.0.0",
+    "homebridge": "^1.6.0 || ^2.0.0"
+  },
+  "peerDependencies": {
+    "homebridge": "^1.6.0 || ^2.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@typescript-eslint/eslint-plugin": "^6.16.0",
+    "@typescript-eslint/parser": "^6.16.0",
+    "eslint": "^8.56.0",
+    "homebridge": "^1.6.0",
+    "rimraf": "^5.0.5",
+    "typescript": "~5.3.3"
+  },
+  "scripts": {
+    "clean": "rimraf dist",
+    "build": "tsc -b",
+    "lint": "eslint src --ext .ts",
+    "prepare": "npm run build",
+    "test": "npm run lint && npm run build"
+  },
+  "homepage": "https://github.com/work/shelly_rgbw2_homebridge#readme",
+  "author": "work"
+}
