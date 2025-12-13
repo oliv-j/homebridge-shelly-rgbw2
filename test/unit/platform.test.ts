@@ -57,7 +57,7 @@ describe('ShellyRGBW2Platform polling', () => {
     expect(refreshSpy).toHaveBeenCalled();
   });
 
-  test('separate devices get separate timers', async () => {
+  test('separate devices get separate timers and do not re-register cached UUIDs', async () => {
     vi.useFakeTimers({ now });
     const platform = createPlatform([
       { id: 'dev1', host: 'http://test1', pollIntervalSeconds: 2, channels: [{ channel: 0 }] },
@@ -67,6 +67,10 @@ describe('ShellyRGBW2Platform polling', () => {
     platform['discoverDevices']();
     await flushMicrotasks();
     expect(platform['pollTimers'].size).toBe(2);
+    expect(platform['api'].registerPlatformAccessories).toHaveBeenCalledTimes(1);
+    const args = (platform['api'].registerPlatformAccessories as unknown as ReturnType<typeof vi.fn>).mock.calls[0][2];
+    const uuids = args.map((acc: any) => acc.UUID);
+    expect(new Set(uuids).size).toBe(uuids.length);
 
     await vi.advanceTimersByTimeAsync(3000);
     for (const accs of platform['channelAccessories'].values()) {

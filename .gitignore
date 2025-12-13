@@ -7,4 +7,6 @@ coverage
 /.env
 .nyc_output
 tmp
+.npm-cache
+*.tgz
 tsconfig.tsbuildinfo

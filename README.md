@@ -31,9 +31,9 @@ Keep this list in sync when folders change.
 Before installing the plugin, confirm the Shelly behaves as expected (replace IP/channel as needed):
 
 ```bash
-curl -s "http://10.0.0.54/white/0" | python3 -m json.tool
-curl -s "http://10.0.0.54/white/0?turn=on&brightness=20" | python3 -m json.tool
-curl -s "http://10.0.0.54/white/0?turn=off" | python3 -m json.tool
+curl -s "http://10.0.0.99/white/0" | python3 -m json.tool
+curl -s "http://10.0.0.99/white/0?turn=on&brightness=20" | python3 -m json.tool
+curl -s "http://10.0.0.99/white/0?turn=off" | python3 -m json.tool
 ```
 
 ## Installation
@@ -45,7 +45,7 @@ On the Homebridge box:
 
 1) Build and pack:
 ```bash
-cd /path/to/shelly_rgbw2_homebridge
+cd .../shelly_rgbw2_homebridge
 npm ci
 npm run build
 npm pack
@@ -58,7 +58,11 @@ sudo hb-service stop
 
 3) Install using the **hb-service managed npm**:
 ```bash
-sudo /opt/homebridge/bin/npm install -g ./homebridge-shelly-rgbw2-0.1.0.tgz --no-audit --no-fund
+sudo hb-service stop
+cd /var/lib/homebridge
+sudo -u homebridge env PATH=/opt/homebridge/bin:$PATH /opt/homebridge/bin/npm uninstall homebridge-shelly-rgbw2 --no-audit --no-fund
+sudo -u homebridge env PATH=/opt/homebridge/bin:$PATH /opt/homebridge/bin/npm install --no-audit --no-fund /home/USER/homebridge-shelly-rgbw2-0.1.1.tgz
+sudo hb-service start
 ```
 
 4) Start Homebridge:

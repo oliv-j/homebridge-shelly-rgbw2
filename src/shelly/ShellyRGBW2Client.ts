@@ -146,6 +146,9 @@ export function parseWhiteStatus(data: unknown): ShellyWhiteStatus {
   const record = data as Record<string, unknown>;
   const isOn = Boolean(record.ison);
   const brightnessRaw = record.brightness;
+  if (brightnessRaw === undefined || brightnessRaw === null || Number.isNaN(Number(brightnessRaw))) {
+    throw new Error('Invalid Shelly response: missing brightness');
+  }
   const brightness = clampBrightness(typeof brightnessRaw === 'number' ? brightnessRaw : Number(brightnessRaw));
 
   return { isOn, brightness };

@@ -84,6 +84,19 @@ describe('ShellyWhiteChannelAccessory', () => {
     __mockClients.length = 0;
   });
 
+  test('refresh skips during cooldown after a set', async () => {
+    const { channelAccessory, client } = createAccessory();
+
+    client.calls.getWhiteStatus.length = 0;
+    channelAccessory['lastSetAt'] = Date.now();
+    await channelAccessory.refreshFromDevice();
+    expect(client.calls.getWhiteStatus.length).toBe(0);
+
+    vi.advanceTimersByTime(600);
+    await channelAccessory.refreshFromDevice();
+    expect(client.calls.getWhiteStatus.length).toBe(1);
+  });
+
   test('debounces brightness and uses combined on+brightness when off', async () => {
     const { accessory, service, client } = createAccessory();
 
@@ -169,6 +182,19 @@ describe('ShellyWhiteChannelAccessory', () => {
     expect(service.updated).toContainEqual({ name: 'On', value: false });
     expect(service.updated).toContainEqual({ name: 'Brightness', value: 0 });
   });
+
+  test('transitions are passed through on set paths', async () => {
+    const { client, accessory } = createAccessory({ transitionOnMs: 200, transitionOffMs: 400 });
+    accessory.context.state.isOn = true;
+    accessory.context.state.brightness = 10;
+    accessory.context.state.lastNonZeroBrightness = 10;
+
+    await accessory.getService('Lightbulb')!.getCharacteristic('On').triggerSet(false);
+    expect(client.calls.setWhiteOn[0]).toMatchObject({ transitionMs: 400 });
+
+    await accessory.getService('Lightbulb')!.getCharacteristic('On').triggerSet(true);
+    expect(client.calls.setWhiteOnWithBrightness[0]).toMatchObject({ transitionMs: 200 });
+  });
 });
 
 test('refreshFromDevice applies changes and updates characteristics once', async () => {
@@ -193,13 +219,14 @@ test('refreshFromDevice applies changes and updates characteristics once', async
   expect(service.updated).toHaveLength(0);
 });
 
-function createAccessory() {
+function createAccessory(deviceOverrides: Partial<ShellyDeviceConfig> = {}) {
   const hap = createHapStub();
   const platform = createPlatform(hap);
 
   const device: ShellyDeviceConfig = {
     id: 'dev1',
     host: 'http://shelly.test',
+    ...deviceOverrides,
   };
   const channel: ShellyChannelConfig = { channel: 0 };
   const accessory = new FakeAccessory('Test Light', hap);

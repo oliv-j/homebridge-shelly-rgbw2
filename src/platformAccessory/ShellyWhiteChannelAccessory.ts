@@ -26,6 +26,8 @@ export class ShellyWhiteChannelAccessory {
   private brightnessReject?: (err: unknown) => void;
   private pendingBrightness?: number;
   private pendingWasOn?: boolean;
+  private readonly setCooldownMs = 500;
+  private lastSetAt = 0;
 
   constructor(
     private readonly platform: ShellyRGBW2Platform,
@@ -87,6 +89,7 @@ export class ShellyWhiteChannelAccessory {
       if (!target) {
         const status = await this.client.setWhiteOn(this.channel.channel, false, this.device.transitionOffMs);
         this.applyStatus(status, { force: true });
+        this.lastSetAt = Date.now();
         return;
       }
 
@@ -100,6 +103,7 @@ export class ShellyWhiteChannelAccessory {
         this.device.transitionOnMs,
       );
       this.applyStatus(status, { force: true });
+      this.lastSetAt = Date.now();
     });
   }
 
@@ -166,6 +170,7 @@ export class ShellyWhiteChannelAccessory {
           );
           this.applyStatus(status, { force: true });
         }
+        this.lastSetAt = Date.now();
       }).then(() => {
         this.brightnessResolve?.();
       }).catch(error => {
@@ -183,6 +188,11 @@ export class ShellyWhiteChannelAccessory {
 
   public async refreshFromDevice(): Promise<void> {
     return this.enqueueCommand(async () => {
+      const now = Date.now();
+      if (now - this.lastSetAt < this.setCooldownMs) {
+        return;
+      }
+
       try {
         const status = await this.client.getWhiteStatus(this.channel.channel);
         this.applyStatus(status);

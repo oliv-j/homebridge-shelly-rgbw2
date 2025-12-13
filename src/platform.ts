@@ -25,10 +25,11 @@ export interface ShellyRGBW2PlatformConfig extends PlatformConfig {
 }
 
 export class ShellyRGBW2Platform implements DynamicPlatformPlugin {
-  public readonly accessories: PlatformAccessory[] = [];
+  private readonly accessoriesByUuid = new Map<string, PlatformAccessory>();
   private readonly channelAccessories = new Map<string, ShellyWhiteChannelAccessory[]>();
   private readonly pollTimers = new Map<string, NodeJS.Timeout>();
   private readonly failureCounts = new Map<string, number>();
+  private didRunDiscovery = false;
 
   constructor(
     public readonly log: Logger,
@@ -51,15 +52,32 @@ export class ShellyRGBW2Platform implements DynamicPlatformPlugin {
   }
 
   configureAccessory(accessory: PlatformAccessory): void {
+    if (this.accessoriesByUuid.has(accessory.UUID)) {
+      this.log.debug?.(`Skipping duplicate cached accessory ${accessory.displayName} (${accessory.UUID})`);
+      return;
+    }
+
     this.log.info('Loading accessory from cache:', accessory.displayName);
-    this.accessories.push(accessory);
+    this.accessoriesByUuid.set(accessory.UUID, accessory);
   }
 
   private discoverDevices(): void {
+    if (this.didRunDiscovery) {
+      this.log.debug?.('Discovery already executed, skipping.');
+      return;
+    }
+    this.didRunDiscovery = true;
+
+    const newAccessories: PlatformAccessory[] = [];
+    const configuredUuids: string[] = [];
+
     for (const device of this.config.devices ?? []) {
       if (!device?.host) {
         this.log.warn('Skipping device without host:', device?.id ?? '<missing id>');
         continue;
+      }
+      if (!device?.id) {
+        this.log.warn(`Device at ${device.host} missing id; set a stable id for consistent UUIDs.`);
       }
 
       const safeChannels = this.normaliseChannels(device);
@@ -72,15 +90,23 @@ export class ShellyRGBW2Platform implements DynamicPlatformPlugin {
       const channelInstances: ShellyWhiteChannelAccessory[] = [];
 
       for (const channel of safeChannels) {
-        const channelId = `${device.id ?? device.host}-${channel.channel}`;
-        const uuid = this.api.hap.uuid.generate(channelId);
-        const existingAccessory = this.accessories.find(accessory => accessory.UUID === uuid);
+        const uuidSeed = this.uuidSeed(device, channel);
+        const uuid = this.api.hap.uuid.generate(uuidSeed);
+        configuredUuids.push(uuid);
+
+        const existingAccessory = this.accessoriesByUuid.get(uuid);
         const accessoryName = channel.name ?? `${device.id ?? device.host} CH${channel.channel}`;
+
+        this.log.debug?.(
+          `Configured channel: seed=${uuidSeed} uuid=${uuid} ` +
+          (existingAccessory ? '(cached)' : '(new)'),
+        );
 
         if (existingAccessory) {
           existingAccessory.displayName = accessoryName;
           existingAccessory.context.device = device;
           existingAccessory.context.channel = channel;
+          existingAccessory.context.plugin = PLUGIN_NAME;
           this.log.info('Restoring cached accessory', accessoryName);
           channelInstances.push(new ShellyWhiteChannelAccessory(this, existingAccessory, device, channel));
         } else {
@@ -88,9 +114,10 @@ export class ShellyRGBW2Platform implements DynamicPlatformPlugin {
           const accessory = new this.api.platformAccessory(accessoryName, uuid);
           accessory.context.device = device;
           accessory.context.channel = channel;
+          accessory.context.plugin = PLUGIN_NAME;
           channelInstances.push(new ShellyWhiteChannelAccessory(this, accessory, device, channel));
-          this.accessories.push(accessory);
-          this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
+          this.accessoriesByUuid.set(uuid, accessory);
+          newAccessories.push(accessory);
         }
       }
 
@@ -100,15 +127,18 @@ export class ShellyRGBW2Platform implements DynamicPlatformPlugin {
       }
     }
 
-    const configuredUuids = new Set(
-      (this.config.devices ?? []).flatMap(device =>
-        this.normaliseChannels(device).map(ch => this.api.hap.uuid.generate(`${device.id ?? device.host}-${ch.channel}`))),
-    );
+    if (newAccessories.length > 0) {
+      const names = newAccessories.map(acc => `${acc.displayName} (${acc.UUID})`).join(', ');
+      this.log.info(`Registering ${newAccessories.length} new accessories: ${names}`);
+      this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, newAccessories);
+    }
 
-    for (const accessory of this.accessories) {
-      if (!configuredUuids.has(accessory.UUID)) {
+    const configuredSet = new Set(configuredUuids);
+    for (const [uuid, accessory] of this.accessoriesByUuid.entries()) {
+      if (!configuredSet.has(uuid)) {
         this.log.info('Removing stale accessory', accessory.displayName);
         this.api.unregisterPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
+        this.accessoriesByUuid.delete(uuid);
       }
     }
   }
@@ -180,5 +210,9 @@ export class ShellyRGBW2Platform implements DynamicPlatformPlugin {
 
   private deviceKey(device: ShellyDeviceConfig): string {
     return device.id ?? device.host;
+  }
+
+  private uuidSeed(device: ShellyDeviceConfig, channel: ShellyChannelConfig): string {
+    return `ShellyRGBW2:${device.id ?? device.host}:ch${channel.channel}`;
   }
 }
