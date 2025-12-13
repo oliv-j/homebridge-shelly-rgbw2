@@ -1,6 +1,6 @@
 {
   "name": "homebridge-shelly-rgbw2",
-  "version": "0.1.3-beta.1",
+  "version": "0.1.3-beta.2",
   "description": "Homebridge v2 dynamic platform plugin for Shelly RGBW2 (Gen1) in white mode",
   "license": "GPL-3.0-only",
   "main": "dist/index.js",
