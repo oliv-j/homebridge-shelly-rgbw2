@@ -19,6 +19,8 @@ Key files/folders only (excluding generated/hidden items); update if layout chan
 
 ```
 .
+├─ .github/workflows/
+│  └─ ci.yml
 ├─ src/
 │  ├─ index.ts
 │  ├─ platform.ts
@@ -28,9 +30,11 @@ Key files/folders only (excluding generated/hidden items); update if layout chan
 ├─ test/
 │  ├─ contract/
 │  └─ unit/
+├─ CHANGELOG.md
+├─ CONTRIBUTING.md
 ├─ config.schema.json
 ├─ package.json
-└─ homebridge-shelly-rgbw2-0.1.3.tgz
+└─ homebridge-shelly-rgbw2-0.1.3-beta.1.tgz
 ```
 
 ## Local install (no npm publish)
@@ -43,7 +47,7 @@ NPM_CONFIG_CACHE=./.npm-cache npm pack
 On your Homebridge box (hb-service):
 ```bash
 sudo hb-service stop
-sudo /opt/homebridge/bin/npm install -g /path/to/homebridge-shelly-rgbw2-0.1.3.tgz --no-audit --no-fund
+sudo /opt/homebridge/bin/npm install -g /path/to/homebridge-shelly-rgbw2-0.1.3-beta.1.tgz --no-audit --no-fund
 sudo hb-service start
 ```
 
@@ -63,7 +67,7 @@ curl -s "http://<device-ip>/white/0?turn=off" | python3 -m json.tool
 
 ## Installation
 
-### Option A: Install using homebridge-shelly-rgbw2-0.1.3.tgz
+### Option A: Install using homebridge-shelly-rgbw2-0.1.3-beta.1.tgz
 Copy the tgz to your homebridge box and then run:
 
 ```bash
@@ -71,7 +75,7 @@ sudo hb-service stop
 cd /var/lib/homebridge
 #uninstall any previously installed version version first (optional)
 sudo -u homebridge env PATH=/opt/homebridge/bin:$PATH /opt/homebridge/bin/npm uninstall homebridge-shelly-rgbw2 --no-audit --no-fund
-sudo -u homebridge env PATH=/opt/homebridge/bin:$PATH /opt/homebridge/bin/npm install --no-audit --no-fund /home/<USER>/homebridge-shelly-rgbw2-0.1.3.tgz
+sudo -u homebridge env PATH=/opt/homebridge/bin:$PATH /opt/homebridge/bin/npm install --no-audit --no-fund /home/<USER>/homebridge-shelly-rgbw2-0.1.3-beta.1.tgz
 sudo hb-service start
 ```
 
@@ -98,7 +102,7 @@ sudo hb-service stop
 sudo hb-service stop
 cd /var/lib/homebridge
 sudo -u homebridge env PATH=/opt/homebridge/bin:$PATH /opt/homebridge/bin/npm uninstall homebridge-shelly-rgbw2 --no-audit --no-fund
-sudo -u homebridge env PATH=/opt/homebridge/bin:$PATH /opt/homebridge/bin/npm install --no-audit --no-fund /home/USER/homebridge-shelly-rgbw2-0.1.3.tgz
+sudo -u homebridge env PATH=/opt/homebridge/bin:$PATH /opt/homebridge/bin/npm install --no-audit --no-fund /home/USER/homebridge-shelly-rgbw2-0.1.3-beta.1.tgz
 sudo hb-service start
 ```
 
@@ -120,7 +124,7 @@ sudo hb-service start
 If/when published to npm, install globally:
 
 ```bash
-npm install -g homebridge-shelly-rgbw2
+npm install -g homebridge-shelly-rgbw2@beta
 ```
 
 > Note: on hb-service installs, prefer using `/opt/homebridge/bin/npm` to avoid permission and path mismatches.
@@ -202,13 +206,19 @@ done
 - Temporarily increase logging (if supported by the plugin build) and check for timeouts/retries.
 - Ensure your network is stable (Wi‑Fi dropouts can show up as state drift).
 
+## Contributing
+See `CONTRIBUTING.md` for the development workflow (lint → build → test) and guidelines.
+
+## License
+GPL-3.0-only. See `LICENSE` for details.
+
 ### I used `npm link` and now things are weird
 - `npm link` is convenient but can leave stale links if you move folders.
 - Remove the link and reinstall via `.tgz`:
 ```bash
 sudo hb-service stop
 sudo /opt/homebridge/bin/npm uninstall -g homebridge-shelly-rgbw2 --no-audit --no-fund
-sudo /opt/homebridge/bin/npm install -g /path/to/homebridge-shelly-rgbw2-0.1.3.tgz --no-audit --no-fund
+sudo /opt/homebridge/bin/npm install -g /path/to/homebridge-shelly-rgbw2-0.1.3-beta.1.tgz --no-audit --no-fund
 sudo hb-service start
 ```
 
