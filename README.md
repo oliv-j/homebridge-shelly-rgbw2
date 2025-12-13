@@ -2,10 +2,15 @@
 
 Homebridge v2-ready dynamic platform plugin for the Shelly RGBW2 (Gen1) in **white mode**. Each white channel (0–3) is exposed as a HomeKit Lightbulb with On and Brightness characteristics.
 
-Repo folder name (if cloned locally): `shelly_rgbw2_homebridge`.
+Repo folder name (if cloned locally): `homebridge-shelly-rgbw2`.
 
 ## Status
 Phase 4 in progress: platform scaffold plus Shelly HTTP client with timeouts/retries/parsing, channel accessories with command queue + debounce + lastNonZeroBrightness, and polling with change-only updates/backoff. Remaining work: additional hardening and integration polish before live deployment.
+
+> **Early development**: this plugin is still in early testing. Expect bugs and breaking changes; verify on a test Homebridge before deploying widely.
+
+## Homebridge 2.0 beta note
+Peer/engine ranges include `^2.0.0-beta.0`, so install works on Homebridge 2.0 betas without `--legacy-peer-deps`.
 
 ## Repo structure
 Keep this list in sync when folders change.
@@ -27,13 +32,32 @@ Keep this list in sync when folders change.
 └─ agents.md
 ```
 
+## Local install (no npm publish)
+Build and pack:
+```bash
+npm run build
+NPM_CONFIG_CACHE=./.npm-cache npm pack
+```
+
+On your Homebridge box (hb-service):
+```bash
+sudo hb-service stop
+sudo /opt/homebridge/bin/npm install -g /path/to/homebridge-shelly-rgbw2-0.1.3.tgz --no-audit --no-fund
+sudo hb-service start
+```
+
+## Troubleshooting “already bridged” / duplicate accessories
+- Make sure each device has a stable `id` in config.
+- The plugin now de-dupes cached accessories and uses a stable UUID seed: `ShellyRGBW2:<device-id-or-host>:ch<channel>`.
+- If duplicates persist, clear cached accessories for this plugin and restart Homebridge; then restart a couple of times to confirm UUID counts stay at 1.
+
 ## Local validation (Shelly endpoints)
 Before installing the plugin, confirm the Shelly behaves as expected (replace IP/channel as needed):
 
 ```bash
-curl -s "http://10.0.0.99/white/0" | python3 -m json.tool
-curl -s "http://10.0.0.99/white/0?turn=on&brightness=20" | python3 -m json.tool
-curl -s "http://10.0.0.99/white/0?turn=off" | python3 -m json.tool
+curl -s "http://<device-ip>/white/0" | python3 -m json.tool
+curl -s "http://<device-ip>/white/0?turn=on&brightness=20" | python3 -m json.tool
+curl -s "http://<device-ip>/white/0?turn=off" | python3 -m json.tool
 ```
 
 ## Installation
@@ -45,7 +69,7 @@ On the Homebridge box:
 
 1) Build and pack:
 ```bash
-cd .../shelly_rgbw2_homebridge
+cd .../homebridge-shelly-rgbw2
 npm ci
 npm run build
 npm pack
@@ -61,7 +85,7 @@ sudo hb-service stop
 sudo hb-service stop
 cd /var/lib/homebridge
 sudo -u homebridge env PATH=/opt/homebridge/bin:$PATH /opt/homebridge/bin/npm uninstall homebridge-shelly-rgbw2 --no-audit --no-fund
-sudo -u homebridge env PATH=/opt/homebridge/bin:$PATH /opt/homebridge/bin/npm install --no-audit --no-fund /home/USER/homebridge-shelly-rgbw2-0.1.1.tgz
+sudo -u homebridge env PATH=/opt/homebridge/bin:$PATH /opt/homebridge/bin/npm install --no-audit --no-fund /home/USER/homebridge-shelly-rgbw2-0.1.3.tgz
 sudo hb-service start
 ```
 
@@ -75,7 +99,7 @@ Useful for rapid dev, but easier to break if paths change.
 
 ```bash
 sudo hb-service stop
-sudo /opt/homebridge/bin/npm link /path/to/shelly_rgbw2_homebridge
+sudo /opt/homebridge/bin/npm link /path/to/homebridge-shelly-rgbw2
 sudo hb-service start
 ```
 
@@ -98,7 +122,7 @@ Add the platform block to `config.json` (or via Homebridge UI → Config):
   "devices": [
     {
       "id": "ceiling-shelly",
-      "host": "10.0.0.54",
+      "host": "<device-ip>",
       "channels": [
         { "channel": 0, "name": "Ceiling 1" },
         { "channel": 1, "name": "Ceiling 2" }
@@ -144,14 +168,14 @@ sudo /opt/homebridge/bin/npm ls -g --depth=0 | grep -i shelly
 ```bash
 sudo hb-service restart
 ```
-Then open Homebridge UI → Logs and look for `shelly_rgbw2_homebridge`.
+Then open Homebridge UI → Logs and look for `homebridge-shelly-rgbw2`.
 
 ### Plugin appears in UI, but no accessories show up
 - Check the platform name matches exactly:
   - config uses `"platform": "ShellyRGBW2"`
 - Confirm the Shelly host is reachable from the Homebridge box:
 ```bash
-curl -s "http://10.0.0.54/white/0" | python3 -m json.tool
+curl -s "http://<device-ip>/white/0" | python3 -m json.tool
 ```
 - If you configured channels that are not 0–3, they will be ignored/errored by design.
 
@@ -159,7 +183,7 @@ curl -s "http://10.0.0.54/white/0" | python3 -m json.tool
 - Verify Shelly responds quickly and consistently:
 ```bash
 for i in $(seq 1 10); do
-  curl -s -o /dev/null -w "total=%{time_total}s\n" "http://10.0.0.54/white/0"
+curl -s -o /dev/null -w "total=%{time_total}s\n" "http://<device-ip>/white/0"
 done
 ```
 - Temporarily increase logging (if supported by the plugin build) and check for timeouts/retries.
@@ -170,8 +194,8 @@ done
 - Remove the link and reinstall via `.tgz`:
 ```bash
 sudo hb-service stop
-sudo /opt/homebridge/bin/npm uninstall -g shelly_rgbw2_homebridge --no-audit --no-fund
-sudo /opt/homebridge/bin/npm install -g /path/to/shelly_rgbw2_homebridge-0.1.0.tgz --no-audit --no-fund
+sudo /opt/homebridge/bin/npm uninstall -g homebridge-shelly-rgbw2 --no-audit --no-fund
+sudo /opt/homebridge/bin/npm install -g /path/to/homebridge-shelly-rgbw2-0.1.3.tgz --no-audit --no-fund
 sudo hb-service start
 ```
 

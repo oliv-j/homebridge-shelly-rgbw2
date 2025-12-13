@@ -30,7 +30,7 @@
             "id": {
               "type": "string",
               "title": "Device ID",
-              "description": "Unique identifier for this Shelly (used for stable accessory UUIDs)."
+              "description": "Unique identifier for this Shelly (used for stable accessory UUIDs). Choose a stable name (e.g. ceiling-shelly)."
             },
             "host": {
               "type": "string",

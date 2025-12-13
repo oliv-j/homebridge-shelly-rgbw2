@@ -9,4 +9,6 @@ coverage
 tmp
 .npm-cache
 *.tgz
+plan.md
+agents.md
 tsconfig.tsbuildinfo
