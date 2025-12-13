@@ -26,6 +26,9 @@ export interface ShellyRGBW2PlatformConfig extends PlatformConfig {
 
 export class ShellyRGBW2Platform implements DynamicPlatformPlugin {
   public readonly accessories: PlatformAccessory[] = [];
+  private readonly channelAccessories = new Map<string, ShellyWhiteChannelAccessory[]>();
+  private readonly pollTimers = new Map<string, NodeJS.Timeout>();
+  private readonly failureCounts = new Map<string, number>();
 
   constructor(
     public readonly log: Logger,
@@ -65,6 +68,9 @@ export class ShellyRGBW2Platform implements DynamicPlatformPlugin {
         continue;
       }
 
+      const deviceKey = this.deviceKey(device);
+      const channelInstances: ShellyWhiteChannelAccessory[] = [];
+
       for (const channel of safeChannels) {
         const channelId = `${device.id ?? device.host}-${channel.channel}`;
         const uuid = this.api.hap.uuid.generate(channelId);
@@ -76,16 +82,21 @@ export class ShellyRGBW2Platform implements DynamicPlatformPlugin {
           existingAccessory.context.device = device;
           existingAccessory.context.channel = channel;
           this.log.info('Restoring cached accessory', accessoryName);
-          new ShellyWhiteChannelAccessory(this, existingAccessory, device, channel);
+          channelInstances.push(new ShellyWhiteChannelAccessory(this, existingAccessory, device, channel));
         } else {
           this.log.info('Registering new accessory', accessoryName);
           const accessory = new this.api.platformAccessory(accessoryName, uuid);
           accessory.context.device = device;
           accessory.context.channel = channel;
-          new ShellyWhiteChannelAccessory(this, accessory, device, channel);
+          channelInstances.push(new ShellyWhiteChannelAccessory(this, accessory, device, channel));
           this.accessories.push(accessory);
           this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
         }
+      }
+
+      if (channelInstances.length > 0) {
+        this.channelAccessories.set(deviceKey, channelInstances);
+        this.startPolling(deviceKey, device);
       }
     }
 
@@ -121,5 +132,53 @@ export class ShellyRGBW2Platform implements DynamicPlatformPlugin {
       channel: Number(ch.channel),
       name: ch.name,
     }));
+  }
+
+  public startPolling(deviceKey: string, device: ShellyDeviceConfig): void {
+    const existing = this.pollTimers.get(deviceKey);
+    if (existing) {
+      clearTimeout(existing);
+    }
+
+    const runPoll = async () => {
+      const accessories = this.channelAccessories.get(deviceKey) ?? [];
+      const intervalMs = this.pollInterval(device);
+      const failuresBefore = this.failureCounts.get(deviceKey) ?? 0;
+      let failures = failuresBefore;
+
+      for (const accessory of accessories) {
+        try {
+          await accessory.refreshFromDevice();
+          failures = 0;
+        } catch (error) {
+          failures += 1;
+          if (failures === 1 || failures % 3 === 0) {
+            this.log.warn(`Polling failed for ${deviceKey} (channel ${accessory.channelIndex}): ${String(error)}`);
+          }
+        }
+      }
+
+      this.failureCounts.set(deviceKey, failures);
+      const backoffMultiplier = failures > 0 ? Math.min(4, failures + 1) : 1;
+      const delayMs = Math.min(intervalMs * backoffMultiplier, 30000);
+
+      const timer = setTimeout(runPoll, delayMs);
+      timer.unref?.();
+      this.pollTimers.set(deviceKey, timer);
+    };
+
+    runPoll().catch(error => {
+      this.log.error(`Initial polling failed for ${deviceKey}: ${String(error)}`);
+    });
+  }
+
+  private pollInterval(device: ShellyDeviceConfig): number {
+    const seconds = device.pollIntervalSeconds ?? 5;
+    const bounded = Math.min(60, Math.max(2, seconds));
+    return bounded * 1000;
+  }
+
+  private deviceKey(device: ShellyDeviceConfig): string {
+    return device.id ?? device.host;
   }
 }

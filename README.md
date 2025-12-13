@@ -5,7 +5,27 @@ Homebridge v2-ready dynamic platform plugin for the Shelly RGBW2 (Gen1) in **whi
 Repo folder name (if cloned locally): `shelly_rgbw2_homebridge`.
 
 ## Status
-This is the initial scaffold following the project plan. Accessory wiring and Shelly HTTP calls are placeholders for now; upcoming phases will add the Shelly client, polling, and robust state handling.
+Phase 4 in progress: platform scaffold plus Shelly HTTP client with timeouts/retries/parsing, channel accessories with command queue + debounce + lastNonZeroBrightness, and polling with change-only updates/backoff. Remaining work: additional hardening and integration polish before live deployment.
+
+## Repo structure
+Keep this list in sync when folders change.
+
+```
+.
+├─ src/
+│  ├─ index.ts
+│  ├─ platform.ts
+│  ├─ settings.ts
+│  ├─ shelly/
+│  └─ platformAccessory/
+├─ test/
+│  ├─ contract/
+│  └─ unit/
+├─ config.schema.json
+├─ package.json
+├─ plan.md
+└─ agents.md
+```
 
 ## Local validation (Shelly endpoints)
 Before installing the plugin, confirm the Shelly behaves as expected (replace IP/channel as needed):
