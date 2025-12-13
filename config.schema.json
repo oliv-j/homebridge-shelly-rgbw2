@@ -1,0 +1,119 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "pluginAlias": "ShellyRGBW2",
+  "pluginType": "platform",
+  "singular": true,
+  "schema": {
+    "type": "object",
+    "properties": {
+      "platform": {
+        "type": "string",
+        "const": "ShellyRGBW2"
+      },
+      "name": {
+        "type": "string",
+        "title": "Name",
+        "default": "Shelly RGBW2",
+        "description": "Display name for the platform in Homebridge logs."
+      },
+      "devices": {
+        "type": "array",
+        "title": "Devices",
+        "description": "Shelly RGBW2 devices to expose. Each channel becomes a Lightbulb accessory.",
+        "items": {
+          "type": "object",
+          "required": [
+            "id",
+            "host"
+          ],
+          "properties": {
+            "id": {
+              "type": "string",
+              "title": "Device ID",
+              "description": "Unique identifier for this Shelly (used for stable accessory UUIDs)."
+            },
+            "host": {
+              "type": "string",
+              "title": "Host",
+              "description": "IP address or hostname of the Shelly RGBW2 in white mode.",
+              "format": "hostname"
+            },
+            "channels": {
+              "type": "array",
+              "title": "Channels",
+              "description": "Channels to expose (0–3). If omitted, channel 0 is used.",
+              "items": {
+                "type": "object",
+                "required": [
+                  "channel"
+                ],
+                "properties": {
+                  "channel": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 3,
+                    "title": "Channel",
+                    "description": "White mode channel number (0–3)."
+                  },
+                  "name": {
+                    "type": "string",
+                    "title": "Name",
+                    "description": "Optional display name for this channel accessory."
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "pollIntervalSeconds": {
+              "type": "integer",
+              "minimum": 2,
+              "maximum": 60,
+              "default": 5,
+              "title": "Poll interval (seconds)",
+              "description": "How often to refresh state from the Shelly. Default 5s."
+            },
+            "requestTimeoutMs": {
+              "type": "integer",
+              "minimum": 500,
+              "maximum": 10000,
+              "default": 2500,
+              "title": "Request timeout (ms)",
+              "description": "HTTP request timeout when calling the Shelly."
+            },
+            "transitionOnMs": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 5000,
+              "title": "On transition (ms)",
+              "description": "Optional transition time when turning on (pass-through to Shelly)."
+            },
+            "transitionOffMs": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 5000,
+              "title": "Off transition (ms)",
+              "description": "Optional transition time when turning off (pass-through to Shelly)."
+            },
+            "username": {
+              "type": "string",
+              "title": "Username",
+              "description": "Shelly HTTP username (if authentication is enabled)."
+            },
+            "password": {
+              "type": "string",
+              "title": "Password",
+              "description": "Shelly HTTP password (if authentication is enabled)."
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+    "required": [
+      "platform",
+      "name",
+      "devices"
+    ],
+    "additionalProperties": false
+  }
+}
