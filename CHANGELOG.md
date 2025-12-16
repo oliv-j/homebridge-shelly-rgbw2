@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.4 - Released
+- Repo and documentation tidy-up ahead of Homebridge verification: moved contributing to .github, clarified release checklist (GitHub Release required), tightened CI Node matrix (18.x/20.x), and cleaned packaging docs/ignore rules.
+
 ## 0.1.3 - Released
 - Homebridge v2-ready dynamic platform for Shelly RGBW2 (white mode), one Lightbulb per channel.
 - Shelly HTTP client with timeout/retry/parsing; per-channel queue + debounced brightness + lastNonZeroBrightness; combined on+brightness support.
