@@ -10,6 +10,7 @@ Repo folder name (if cloned locally): `homebridge-shelly-rgbw2`.
 Phases 1–6 complete: dynamic platform, Shelly HTTP client with timeouts/retries/parsing, per-channel accessories (queue + debounce + lastNonZeroBrightness + combined on+brightness), polling with backoff and change-only updates, and stable UUID seeds for cached accessory re-registration. Currently in field testing and hardening before wider rollout.
 
 > **Early development**: this plugin is just out of early testing. Expect to find some bugs and breaking changes; it might be wise to backup your homebridge config before installing.
+So far I have tested this with two rgbw2 devices on my network, running different channels and it is working really well. If you spot any bugs then please let me know.
 
 ## Homebridge 2.0 beta note
 Peer/engine ranges include `^2.0.0-beta.0`, so install works on Homebridge 2.0 betas without `--legacy-peer-deps`.
@@ -34,7 +35,7 @@ Key files/folders only (excluding generated/hidden items); update if layout chan
 ├─ CONTRIBUTING.md
 ├─ config.schema.json
 ├─ package.json
-└─ homebridge-shelly-rgbw2-0.1.3-beta.1.tgz
+└─ homebridge-shelly-rgbw2-0.1.3.tgz
 ```
 
 ## Local install (no npm publish)
@@ -47,7 +48,7 @@ NPM_CONFIG_CACHE=./.npm-cache npm pack
 On your Homebridge box (hb-service):
 ```bash
 sudo hb-service stop
-sudo /opt/homebridge/bin/npm install -g /path/to/homebridge-shelly-rgbw2-0.1.3-beta.1.tgz --no-audit --no-fund
+sudo /opt/homebridge/bin/npm install -g /path/to/homebridge-shelly-rgbw2-0.1.3.tgz --no-audit --no-fund
 sudo hb-service start
 ```
 
@@ -67,7 +68,7 @@ curl -s "http://<device-ip>/white/0?turn=off" | python3 -m json.tool
 
 ## Installation
 
-### Option A: Install using homebridge-shelly-rgbw2-0.1.3-beta.1.tgz
+### Option A: Install using homebridge-shelly-rgbw2-0.1.3.tgz
 Copy the tgz to your homebridge box and then run:
 
 ```bash
@@ -75,7 +76,7 @@ sudo hb-service stop
 cd /var/lib/homebridge
 #uninstall any previously installed version version first (optional)
 sudo -u homebridge env PATH=/opt/homebridge/bin:$PATH /opt/homebridge/bin/npm uninstall homebridge-shelly-rgbw2 --no-audit --no-fund
-sudo -u homebridge env PATH=/opt/homebridge/bin:$PATH /opt/homebridge/bin/npm install --no-audit --no-fund /home/<USER>/homebridge-shelly-rgbw2-0.1.3-beta.1.tgz
+sudo -u homebridge env PATH=/opt/homebridge/bin:$PATH /opt/homebridge/bin/npm install --no-audit --no-fund /home/<USER>/homebridge-shelly-rgbw2-0.1.3.tgz
 sudo hb-service start
 ```
 
@@ -102,7 +103,7 @@ sudo hb-service stop
 sudo hb-service stop
 cd /var/lib/homebridge
 sudo -u homebridge env PATH=/opt/homebridge/bin:$PATH /opt/homebridge/bin/npm uninstall homebridge-shelly-rgbw2 --no-audit --no-fund
-sudo -u homebridge env PATH=/opt/homebridge/bin:$PATH /opt/homebridge/bin/npm install --no-audit --no-fund /home/USER/homebridge-shelly-rgbw2-0.1.3-beta.1.tgz
+sudo -u homebridge env PATH=/opt/homebridge/bin:$PATH /opt/homebridge/bin/npm install --no-audit --no-fund /home/USER/homebridge-shelly-rgbw2-0.1.3.tgz
 sudo hb-service start
 ```
 
@@ -124,7 +125,7 @@ sudo hb-service start
 If/when published to npm, install globally:
 
 ```bash
-npm install -g homebridge-shelly-rgbw2@beta
+npm install -g homebridge-shelly-rgbw2
 ```
 
 > Note: on hb-service installs, prefer using `/opt/homebridge/bin/npm` to avoid permission and path mismatches.
@@ -218,7 +219,7 @@ GPL-3.0-only. See `LICENSE` for details.
 ```bash
 sudo hb-service stop
 sudo /opt/homebridge/bin/npm uninstall -g homebridge-shelly-rgbw2 --no-audit --no-fund
-sudo /opt/homebridge/bin/npm install -g /path/to/homebridge-shelly-rgbw2-0.1.3-beta.1.tgz --no-audit --no-fund
+sudo /opt/homebridge/bin/npm install -g /path/to/homebridge-shelly-rgbw2-0.1.3.tgz --no-audit --no-fund
 sudo hb-service start
 ```
 

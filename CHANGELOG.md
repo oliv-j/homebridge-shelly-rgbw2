@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.1.3 - Unreleased
+## 0.1.3 - Released
 - Homebridge v2-ready dynamic platform for Shelly RGBW2 (white mode), one Lightbulb per channel.
 - Shelly HTTP client with timeout/retry/parsing; per-channel queue + debounced brightness + lastNonZeroBrightness; combined on+brightness support.
 - Polling with backoff and change-only characteristic updates; stable UUID seeds to avoid duplicate cached accessories.
