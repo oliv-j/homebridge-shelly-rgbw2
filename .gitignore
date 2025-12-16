@@ -7,7 +7,7 @@ coverage
 /.env
 .nyc_output
 tmp
-.npm-cache
+.npm-cache/
 *.tgz
 plan.md
 agents.md
