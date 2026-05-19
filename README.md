@@ -1,6 +1,6 @@
 # homebridge-shelly-rgbw2
 
-I built this plugin to solve the buggy experience I was having with Shelly RGBW2 devices in white mode. I would experience delays, timeouts, poor transition times and the home app couldn't poll the devices to find their current brightness setting. 
+I built this plugin to solve the buggy experience I was having with HomeBridge, preventing me from enjoying my Shelly RGBW2 devices in white mode. I would experience delays, timeouts, poor transition times and the home app couldn't poll the devices to find their current brightness setting. Nothing to do with the Shelly device - it was an issue with the HomeBridge plugin. So I built a better one!
 
 This is built for Homebridge v2 and is a dynamic platform plugin for the Shelly RGBW2 (Gen1) in **white mode**. Each white channel (0–3) is exposed as a HomeKit Lightbulb with On and Brightness characteristics.
 
